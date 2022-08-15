@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUCompute", "GPUCompute\GPUCompute.csproj", "{113EC26D-217D-4360-B05E-27A11CEDE27C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUCompute.Tests", "GPUCompute.Tests\GPUCompute.Tests.csproj", "{651F4452-7782-4DAE-A69C-A984AB03C091}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{113EC26D-217D-4360-B05E-27A11CEDE27C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{113EC26D-217D-4360-B05E-27A11CEDE27C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{113EC26D-217D-4360-B05E-27A11CEDE27C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{113EC26D-217D-4360-B05E-27A11CEDE27C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{651F4452-7782-4DAE-A69C-A984AB03C091}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{651F4452-7782-4DAE-A69C-A984AB03C091}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{651F4452-7782-4DAE-A69C-A984AB03C091}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{651F4452-7782-4DAE-A69C-A984AB03C091}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
