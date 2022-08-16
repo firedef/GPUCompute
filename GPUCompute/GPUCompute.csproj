@@ -4,14 +4,22 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="FluentAssertions" Version="6.7.0" />
+      <PackageReference Include="MathStuff" Version="1.0.5" />
+      <PackageReference Include="shaderc.net" Version="0.1.0" />
       <PackageReference Include="Vk" Version="1.0.25" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="src" />
     </ItemGroup>
 
 </Project>
