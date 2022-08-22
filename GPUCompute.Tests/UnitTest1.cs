@@ -1,9 +1,10 @@
 using GPUCompute.core;
-using GPUCompute.vulkan.instance;
-using GPUCompute.vulkan.utils;
-using GPUCompute.vulkan.vma;
-using shaderc;
+using GPUCompute.core.buffers;
+using GPUCompute.vulkan.buffers;
+using GPUCompute.vulkan.descriptors;
 using Vulkan;
+using Buffer = GPUCompute.core.buffers.Buffer;
+using Environment = GPUCompute.core.Environment;
 
 namespace GPUCompute.Tests;
 
@@ -19,66 +20,40 @@ public class Tests
         const string shaderSrc = @"#version 310 es
 layout (local_size_x = 256) in;
 
-layout(set = 0, binding = 0) uniform Config{
-    mat4 transform;
-    int matrixCount;
-} opData;
-
-layout(set = 0, binding = 1) readonly buffer  InputBuffer{
-    mat4 matrices[];
+layout(set = 0, binding = 0) readonly buffer InputBuffer {
+    float floats[];
 } sourceData;
 
-layout(set = 0, binding = 2) buffer  OutputBuffer{
-    mat4 matrices[];
+layout(set = 1, binding = 0) buffer OutputBuffer {
+    float floats[];
 } outputData;
 
 
-void main()
-{
-    //grab global ID
-	uint gID = gl_GlobalInvocationID.x;
-    //make sure we don't access past the buffer size
-    if(gID < 1u)
-    {
-        // do math
-        outputData.matrices[gID] = sourceData.matrices[gID] * opData.transform;
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+    outputData.floats[i] = sourceData.floats[i] * 3.0;
+    for (float a = 0.0; a < 100000.0; a++) {
+        outputData.floats[i] += sin(outputData.floats[i]);
     }
 }
 ";
-
+        
         using Device device = new();
-        using CommandPool commandPool = device.CreatePool();
-        using CommandBuffer commandBuffer = commandPool.CreateBuffer();
+        using Environment env = new(device);
 
-        using ComputeShader shader = device.CreateShader(shaderSrc);
-
-
-        Vma.VmaAllocatorCreateInfo createInfo = new();
-        createInfo.device = device.logicalDevice.device.Handle;
-        createInfo.physicalDevice = device.physicalDevice.device.Handle;
-        createInfo.instance = VulkanInstance.instance.Handle;
-
-        Vma.vmaCreateAllocator(ref createInfo, out IntPtr ptr).Check("vma");
-        Vma.VmaAllocationCreateInfo allocationCreateInfo = new();
-        allocationCreateInfo.usage = Vma.VmaMemoryUsage.VMA_MEMORY_USAGE_GPU_ONLY;
-
-        VkBufferCreateInfo bufferCreateInfo = new();
-        bufferCreateInfo.size = 65536;
-        bufferCreateInfo.usage = VkBufferUsageFlags.TransferDst | VkBufferUsageFlags.StorageBuffer;
-
-        Vma.vmaCreateBuffer(ptr, (IntPtr)(&bufferCreateInfo), ref allocationCreateInfo, out ulong pBuffer, out IntPtr pAllocation, IntPtr.Zero).Check("create buffer");
+        const int c = 2_500_000;
+        Buffer<float> input = new(device.allocator, c, BufferMode.write);
+        Buffer<float> output = new(device.allocator, c, BufferMode.read);
         
-        Vma.vmaDestroyBuffer(ptr, pBuffer, pAllocation);
-        Vma.vmaDestroyAllocator(ptr);
+        input[0] = 69;
+        input[10] = 42;
         
+        using Job job = new(env, shaderSrc, 2);
+        job.Execute(c / 256, input, output);
 
-        // commandBuffer.Begin();
-        // shader.Bind(commandBuffer);
-        // commandBuffer.Dispatch(new(16,16,16));
-        // commandBuffer.End();
-        //
-        // commandBuffer.Execute();
-        
+        Console.WriteLine(input[0] + " " + input[10]);
+        Console.WriteLine(output[0] + " " + output[10]);
+
         device.Wait();
     }
 }

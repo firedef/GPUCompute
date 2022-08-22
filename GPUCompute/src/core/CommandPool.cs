@@ -11,7 +11,7 @@ public class CommandPool : IDisposable {
         commandPool = new(device.logicalDevice);
     }
 
-    public CommandBuffer CreateBuffer() => new(device, this);
+    public CommandBuffer CreateCmdBuffer() => new(device, this);
     
     public void Dispose() {
         commandPool.Dispose();

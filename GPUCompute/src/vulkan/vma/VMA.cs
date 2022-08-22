@@ -318,6 +318,12 @@ public static class Vma {
         IntPtr allocator,
         out VmaBudget pBudget
     );
+    
+    [DllImport(_libraryName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void vmaGetHeapBudgets(
+        IntPtr allocator,
+        VmaBudget[] budgets
+    );
 
     /* ppStatsString is a char** */
     [DllImport(_libraryName, CallingConvention = CallingConvention.Cdecl)]
@@ -524,6 +530,13 @@ public static class Vma {
         IntPtr allocator,
         IntPtr allocation,
         IntPtr[] ppData
+    );
+    
+    [DllImport(_libraryName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int vmaMapMemory(
+        IntPtr allocator,
+        IntPtr allocation,
+        out void* data
     );
 
     [DllImport(_libraryName, CallingConvention = CallingConvention.Cdecl)]

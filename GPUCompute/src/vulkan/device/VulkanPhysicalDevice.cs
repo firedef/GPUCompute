@@ -22,6 +22,8 @@ public unsafe struct VulkanPhysicalDevice {
         }
     }
 
+    public VkPhysicalDeviceMemoryProperties memoryProperties { get { vkGetPhysicalDeviceMemoryProperties(device, out VkPhysicalDeviceMemoryProperties p); return p; } }
+
     public VkPhysicalDeviceType deviceType => properties.deviceType;
 
     public bool isGpu => deviceType != VkPhysicalDeviceType.Cpu;
