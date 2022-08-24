@@ -12,14 +12,37 @@ public readonly struct Job : IDisposable {
     public readonly DescriptorSet[] descriptorSets;
     public readonly ComputeShader shader;
 
-    public Job(Environment environment, string shaderSrc, int bufferCount) {
+    public Job(Environment environment, string shaderSrc, int bufferCount) : this() {
         this.environment = environment;
         descriptorPool = new(environment.device, (uint)bufferCount);
         descriptorSets = new DescriptorSet[bufferCount];
-        for (int i = 0; i < bufferCount; i++)
-            descriptorSets[i] = new(descriptorPool, VkDescriptorType.StorageBuffer);
+        Init(bufferCount);
         
         shader = environment.device.CreateShader(shaderSrc, descriptorSets);
+    }
+    
+    public unsafe Job(Environment environment, void* shaderSrc, int shaderSrcLength, int bufferCount) : this() {
+        this.environment = environment;
+        descriptorPool = new(environment.device, (uint)bufferCount);
+        descriptorSets = new DescriptorSet[bufferCount];
+        Init(bufferCount);
+        
+        shader = environment.device.CreateShader(shaderSrc, shaderSrcLength, descriptorSets);
+    }
+    
+    public unsafe Job(Environment environment, uint[] shaderSrc, int bufferCount) : this() {
+        this.environment = environment;
+        descriptorPool = new(environment.device, (uint)bufferCount);
+        descriptorSets = new DescriptorSet[bufferCount];
+        Init(bufferCount);
+        
+        fixed (uint* shaderSrcPtr = shaderSrc)
+            shader = environment.device.CreateShader(shaderSrcPtr, shaderSrc.Length * sizeof(uint), descriptorSets);
+    }
+
+    private void Init(int bufferCount) {
+        for (int i = 0; i < bufferCount; i++)
+            descriptorSets[i] = new(descriptorPool, VkDescriptorType.StorageBuffer);
     }
 
     public void Execute(int workgroupCountX, params Buffer[] buffers) => Execute3(new(workgroupCountX, 1, 1), buffers);
