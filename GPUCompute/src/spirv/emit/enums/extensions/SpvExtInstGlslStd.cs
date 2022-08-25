@@ -1,6 +1,6 @@
-namespace GPUCompute.spirv.emit.enums; 
+namespace GPUCompute.spirv.emit.enums.extensions; 
 
-public enum SpvExtInst {
+public enum SpvExtInstGlslStd {
     Round = 1,
     RoundEven = 2,
     Trunc = 3,

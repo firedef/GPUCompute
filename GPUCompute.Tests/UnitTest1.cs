@@ -3,6 +3,7 @@ using GPUCompute.core;
 using GPUCompute.core.buffers;
 using GPUCompute.spirv.emit;
 using GPUCompute.spirv.emit.enums;
+using GPUCompute.spirv.gen;
 using GPUCompute.vulkan.buffers;
 using GPUCompute.vulkan.descriptors;
 using Vulkan;
@@ -160,141 +161,146 @@ void main() {
         code.EmitOpSource(SpvSourceLanguage.SourceLanguageESSL, 310);
         code.EmitOpSourceExtension("GL_GOOGLE_cpp_style_line_directive");
         code.EmitOpSourceExtension("GL_GOOGLE_include_directive");
-        //
-        code.EmitOpDecorate(11, SpvDecoration.DecorationBuiltIn, 28);
+        
+        code.EmitOpDecorateBuiltIn(11, SpvBuiltIn.BuiltInGlobalInvocationId);
         code.EmitOpDecorate(17, SpvDecoration.DecorationArrayStride, 4);
-        code.EmitOpMemberDecorate(18, 0, SpvDecoration.DecorationOffset, 0);
-        code.EmitOpDecorate(18, SpvDecoration.DecorationBufferBlock);
-        code.EmitOpDecorate(20, SpvDecoration.DecorationDescriptorSet, 1);
-        code.EmitOpDecorate(20, SpvDecoration.DecorationBinding, 0);
-        code.EmitOpDecorate(24, SpvDecoration.DecorationArrayStride, 4);
-        code.EmitOpMemberDecorate(25, 0, SpvDecoration.DecorationNonWritable);
-        code.EmitOpMemberDecorate(25, 0, SpvDecoration.DecorationOffset, 0);
-        code.EmitOpDecorate(25, SpvDecoration.DecorationBufferBlock);
-        code.EmitOpDecorate(27, SpvDecoration.DecorationDescriptorSet, 0);
-        code.EmitOpDecorate(27, SpvDecoration.DecorationBinding, 0);
-        code.EmitOpDecorate(61, SpvDecoration.DecorationBuiltIn, 25);
+        // code.EmitOpMemberDecorate(18, 0, SpvDecoration.DecorationOffset, 0);
+        // code.EmitOpDecorate(18, SpvDecoration.DecorationBufferBlock);
+        // code.EmitOpDecorate(20, SpvDecoration.DecorationDescriptorSet, 1);
+        // code.EmitOpDecorate(20, SpvDecoration.DecorationBinding, 0);
+        // code.EmitOpDecorate(24, SpvDecoration.DecorationArrayStride, 4);
+        // code.EmitOpMemberDecorate(25, 0, SpvDecoration.DecorationNonWritable);
+        // code.EmitOpMemberDecorate(25, 0, SpvDecoration.DecorationOffset, 0);
+        // code.EmitOpDecorate(25, SpvDecoration.DecorationBufferBlock);
+        // code.EmitOpDecorate(27, SpvDecoration.DecorationDescriptorSet, 0);
+        // code.EmitOpDecorate(27, SpvDecoration.DecorationBinding, 0);
+        code.EmitOpDecorateBuiltIn(61, SpvBuiltIn.BuiltInWorkgroupSize);
         
         code.EmitOpTypeVoid(2);
         code.EmitOpTypeFunction(3, 2);
-        code.EmitOpTypeInt(6, 32, 0);
+        code.EmitOpTypeInt(6, 32, 0); // uint
         code.EmitOpTypePointer(7, 7, 6);
-        code.EmitOpTypeVector(9, 6, 3);
-        code.EmitOpTypePointer(10, 1, 9);
+        code.EmitOpTypeVector(9, 6, 3); // uint3
+        code.EmitOpTypePointer(10, 1, 9); // uint3*
         
-        code.EmitOpVariable(10, 11, 1);
-        code.EmitOpConstant(6, 12, 0);
+        code.EmitOpVariable(10, 11, SpvStorageClass.StorageClassInput); // globalInvocationId
+        code.EmitOpConstant(6, 12, 0); // uint 0
         
-        code.EmitOpTypePointer(13, 1, 6);
-        code.EmitOpTypeFloat(16, 32);
+        code.EmitOpTypePointer(13, 1, 6); // uint*
+        code.EmitOpTypeFloat(16, 32); // float
         code.EmitOpTypeRuntimeArray(17, 16);
         code.EmitOpTypeStruct(18, 17);
         code.EmitOpTypePointer(19, 2, 18);
         
-        code.EmitOpVariable(19, 20, 2);
+        code.EmitOpVariable(19, 20, SpvStorageClass.StorageClassUniform);
         
         code.EmitOpTypeInt(21, 32, 1);
         
-        code.EmitOpConstant(21, 22, 0);
+        code.EmitOpConstant(21, 22, 0); // int 0
         
-        code.EmitOpTypeRuntimeArray(24, 16);
-        code.EmitOpTypeStruct(25, 24);
-        code.EmitOpTypePointer(26, 2, 25);
+        // code.EmitOpTypeRuntimeArray(24, 16);
+        // code.EmitOpTypeStruct(25, 24);
+        // code.EmitOpTypePointer(26, 2, 25);
         
-        code.EmitOpVariable(26, 27, 2);
-        code.EmitOpTypePointer(29, 2, 16);
+        code.EmitOpVariable(26, 27, SpvStorageClass.StorageClassUniform); // Input*
+        code.EmitOpTypePointer(29, 2, 16); // float*
         
-        code.EmitOpConstant(16, 32, 3f);
+        // code.EmitOpConstant(16, 32, 3f);
         
-        code.EmitOpTypePointer(35, 7, 16);
+        // code.EmitOpTypePointer(35, 7, 16);
         
-        code.EmitOpConstant(16, 37, 0);
-        code.EmitOpConstant(16, 44, 100_000f);
+        // code.EmitOpConstant(16, 37, 0);
+        // code.EmitOpConstant(16, 44, 100_000f);
         
-        code.EmitOpTypeBool(45);
+        // code.EmitOpTypeBool(45);
         
-        code.EmitOpConstant(16, 57, 1f);
+        // code.EmitOpConstant(16, 57, 1f);
         code.EmitOpConstant(6, 59, 256);
         code.EmitOpConstant(6, 60, 1);
         code.EmitOpConstantComposite(9, 61, 59, 60, 60);
         
+        
+        
+        
         code.EmitOpFunction(2, 4, SpvFunctionControlMask.FunctionControlMaskNone, 3);
         code.EmitOpLabel(5);
         
-        code.EmitOpVariable(7, 8, 7);
-        code.EmitOpVariable(35, 36, 7);
-        code.EmitOpAccessChain(13, 14, 11, 12);
-        
-        code.EmitOpLoad(6, 15, 14);
+        code.EmitOpVariable(7, 8, SpvStorageClass.StorageClassFunction);
+        // code.EmitOpVariable(35, 36, SpvStorageClass.StorageClassFunction);
+        code.EmitOpAccessChain(13, 14, 11, 12); // [uint*, 14, globalInvocationId, (uint) 0]
+        //
+        code.EmitOpLoad(6, 15, 14); // [uint, 15, globalInvocationId.x]
         code.EmitOpStore(8, 15);
         code.EmitOpLoad(6, 23, 8);
         code.EmitOpLoad(6, 28, 8);
-        code.EmitOpAccessChain(29, 30, 27, 22, 28);
+        code.EmitOpAccessChain(29, 30, 27, 22, 28); // [float*, 30, Input*, (int) 0, globalInvocationId.x]
         code.EmitOpLoad(16, 31, 30);
-        
-        code.EmitOpFMul(16, 33, 31, 32);
-        
-        code.EmitOpAccessChain(29, 34, 20, 22, 23);
+        //
+        // code.EmitOpFMul(16, 33, 31, 32);
+        //
+        code.EmitOpAccessChain(29, 34, 20, 22, 23); // [float*. 34, Output*, (int) 0, globalInvocationId.x]
         code.EmitOpStore(34, 33);
-        code.EmitOpStore(36, 37);
-        
-        code.EmitOpBranch(38);
-        code.EmitOpLabel(38);
-        code.EmitOpLoopMerge(40, 41, 0);
-        code.EmitOpBranch(42);
-        code.EmitOpLabel(42);
-        
-        code.EmitOpLoad(16, 43, 36);
-        code.EmitOpFOrdLessThan(45, 46, 43, 44);
-        code.EmitOpBranchConditional(46, 39, 40);
-        code.EmitOpLabel(39);
-        code.EmitOpLoad(6, 47, 8);
-        code.EmitOpLoad(6, 48, 8);
-        code.EmitOpAccessChain(29, 49, 20, 22, 48);
-        code.EmitOpLoad(16, 50, 49);
-        code.EmitOpExtInst(16, 51, 1, SpvExtInst.Sin, 50);
-        code.EmitOpAccessChain(29, 52, 20, 22, 47);
-        code.EmitOpLoad(16, 53, 52);
-        code.EmitOpFAdd(16, 54, 53, 51);
-        code.EmitOpAccessChain(29, 55, 20, 22, 47);
-        code.EmitOpStore(55, 54);
-        
-        code.EmitOpBranch(41);
-        code.EmitOpLabel(41);
-        code.EmitOpLoad(16, 56, 36);
-        code.EmitOpFAdd(16, 58, 56, 57);
-        code.EmitOpStore(36, 58);
-        code.EmitOpBranch(38);
-        code.EmitOpLabel(40);
+        // code.EmitOpStore(36, 37);
+        //
+        // code.EmitOpBranch(38);
+        // code.EmitOpLabel(38);
+        // code.EmitOpLoopMerge(40, 41, 0);
+        // code.EmitOpBranch(42);
+        // code.EmitOpLabel(42);
+        //
+        // code.EmitOpLoad(16, 43, 36);
+        // code.EmitOpFOrdLessThan(45, 46, 43, 44);
+        // code.EmitOpBranchConditional(46, 39, 40);
+        // code.EmitOpLabel(39);
+        // code.EmitOpLoad(6, 47, 8);
+        // code.EmitOpLoad(6, 48, 8);
+        // code.EmitOpAccessChain(29, 49, 20, 22, 48);
+        // code.EmitOpLoad(16, 50, 49);
+        // code.EmitOpExtInst(16, 51, 1, SpvExtInst.Sin, 50);
+        // code.EmitOpAccessChain(29, 52, 20, 22, 47);
+        // code.EmitOpLoad(16, 53, 52);
+        // code.EmitOpFAdd(16, 54, 53, 51);
+        // code.EmitOpAccessChain(29, 55, 20, 22, 47);
+        // code.EmitOpStore(55, 54);
+        //
+        // code.EmitOpBranch(41);
+        // code.EmitOpLabel(41);
+        // code.EmitOpLoad(16, 56, 36);
+        // code.EmitOpFAdd(16, 58, 56, 57);
+        // code.EmitOpStore(36, 58);
+        // code.EmitOpBranch(38);
+        // code.EmitOpLabel(40);
         code.EmitOpReturn();
         code.EmitOpFunctionEnd();
 
-        uint[] byteCode = code.GetByteCode();
-        Console.WriteLine(byteCode.Length);
-        // PrintByteCode(byteCode);
+        // SpirVCodeGenerator generator = new(new(256,1,1));
+        // generator.Generate();
+        // uint[] byteCode = generator.code.GetByteCode();
+        // //Console.WriteLine(byteCode.Length);
+        PrintByteCode(code.GetByteCode());
         // for (int i = 0; i < byteCode.Length; i++) {
         //     if (i % 4 == 0) Console.WriteLine();
         //     Console.Write($"0x{byteCode[i]:x8},");
         // }
         //
         
-        // using Device device = new();
-        // using Environment env = new(device);
-        //
-        // const int c = 2_500_000;
-        // Buffer<float> input = new(device.allocator, c, BufferMode.write);
-        // Buffer<float> output = new(device.allocator, c, BufferMode.read);
-        //
-        // input[0] = 69;
-        // input[10] = 42;
-        //
-        // using Job job = new(env, code.GetByteCode(), 2);
-        // job.Execute(c / 256, input, output);
-        //
-        // Console.WriteLine(input[0] + " " + input[10]);
-        // Console.WriteLine(output[0] + " " + output[10]);
-        //
-        // device.Wait();
+        using Device device = new();
+        using Environment env = new(device);
+        
+        const int c = 2_500_000;
+        Buffer<float> input = new(device.allocator, c, BufferMode.write);
+        Buffer<float> output = new(device.allocator, c, BufferMode.read);
+        
+        input[0] = 69;
+        input[10] = 42;
+        
+        using Job job = new(env, code.GetByteCode(), 2);
+        job.Execute(c / 256, input, output);
+        
+        Console.WriteLine(input[0] + " " + input[10]);
+        Console.WriteLine(output[0] + " " + output[10]);
+        
+        device.Wait();
     }
 
     private static unsafe void PrintByteCode(uint[] bytecode) {
