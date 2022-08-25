@@ -1,6 +1,6 @@
 using System.Text;
 using GPUCompute.spirv.emit.enums;
-
+using GPUCompute.spirv.emit.enums.extensions;
 using id = System.UInt32;
 // ReSharper disable BuiltInTypeReferenceStyle
 
@@ -11,6 +11,10 @@ public class SpirVEmitter {
 
     public SpirVEmitter() {
         EmitHeader();
+    }
+    
+    public SpirVEmitter(uint idBound) {
+        EmitHeader(idBound);
     }
 
     public uint[] GetByteCode() => bytecode.ToArray();
@@ -42,14 +46,14 @@ public class SpirVEmitter {
     private void EmitMagicNum() => Emit(0x07230203);
     private void EmitVersion() => Emit(0x00010000);
     private void EmitCompilerMagicNum() => Emit(0);
-    private void EmitBound() => Emit(0x0000003e);
+    private void EmitBound(uint idBound) => Emit(idBound);
     private void EmitReserved4() => Emit(0);
 
-    private void EmitHeader() {
+    private void EmitHeader(uint idBound = 128) {
         EmitMagicNum();
         EmitVersion();
         EmitCompilerMagicNum();
-        EmitBound();
+        EmitBound(idBound);
         EmitReserved4();
     }
 
@@ -96,7 +100,7 @@ public class SpirVEmitter {
         foreach (uint v in ints) Emit(v);
     }
 
-    private uint[] GetInts(string s) {
+    public static uint[] GetInts(string s) {
         s += '\0';
         byte[] bytes = Encoding.ASCII.GetBytes(s);
         uint[] ints = new uint[(int)MathF.Ceiling(bytes.Length * .25f)];
@@ -104,7 +108,7 @@ public class SpirVEmitter {
         return ints;
     }
     
-    private unsafe uint[] GetInts<T>(T v) where T : unmanaged {
+    public static unsafe uint[] GetInts<T>(T v) where T : unmanaged {
         uint[] ints = new uint[(int)MathF.Ceiling(sizeof(T) * .25f)];
         for (int i = 0; i < ints.Length; i++) ints[i] = 0;
         fixed (uint* intsPtr = ints) *(T*)intsPtr = v;
@@ -138,6 +142,8 @@ public class SpirVEmitter {
         EmitOp((ushort)(3 + literals.Length), SpvOpCode.OpDecorate, target, (uint)decoration);
         Emit(literals);
     }
+    
+    public void EmitOpDecorateBuiltIn(id target, SpvBuiltIn builtIn) => EmitOpDecorate(target, SpvDecoration.DecorationBuiltIn, (uint)builtIn);
 
     public void EmitOpMemberDecorate(id structureType, id member, SpvDecoration decoration, params uint[] literals) {
         EmitOp((ushort)(4 + literals.Length), SpvOpCode.OpMemberDecorate, structureType, member, (uint)decoration);
@@ -221,6 +227,11 @@ public class SpirVEmitter {
         EmitOp((ushort)(3 + ints.Length), SpvOpCode.OpConstant, type, id);
         Emit(ints);
     }
+    
+    public void EmitOpConstant(id type, id id, uint[] v) {
+        EmitOp((ushort)(3 + v.Length), SpvOpCode.OpConstant, type, id);
+        Emit(v);
+    }
 
     public void EmitOpConstantComposite(id resultType, id result, params id[] constituents) {
         EmitOp((ushort)(3 + constituents.Length), SpvOpCode.OpConstantComposite, resultType, result);
@@ -240,12 +251,22 @@ public class SpirVEmitter {
     public void EmitOpReturn() => EmitOp(1, SpvOpCode.OpReturn);
     public void EmitOpReturnValue(id value) => EmitOp(1, SpvOpCode.OpReturnValue, value);
     
-    public void EmitOpExtInst(id resultType, id result, id instructionSet, SpvExtInst instruction, params id[] operands) {
+    public void EmitOpExtInst(id resultType, id result, id instructionSet, SpvExtInstGlslStd instruction, params id[] operands) {
         EmitOp((ushort)(5 + operands.Length), SpvOpCode.OpExtInst, resultType, result, instructionSet, (uint)instruction);
         Emit(operands);
     }
     
-    public void EmitOpVariable(id resultType, id result, id storageClass) => EmitOp(4, SpvOpCode.OpVariable, resultType, result, storageClass);
+    public void EmitOpExtInst(id resultType, id result, id instructionSet, SpvExtInstOpenClStd instruction, params id[] operands) {
+        EmitOp((ushort)(5 + operands.Length), SpvOpCode.OpExtInst, resultType, result, instructionSet, (uint)instruction);
+        Emit(operands);
+    }
+    
+    public void EmitOpExtInst(id resultType, id result, id instructionSet, uint instruction, params id[] operands) {
+        EmitOp((ushort)(5 + operands.Length), SpvOpCode.OpExtInst, resultType, result, instructionSet, (uint)instruction);
+        Emit(operands);
+    }
+    
+    public void EmitOpVariable(id resultType, id result, SpvStorageClass storageClass) => EmitOp(4, SpvOpCode.OpVariable, resultType, result, (uint) storageClass);
     public void EmitOpVariable(id resultType, id result, id storageClass, id access) => EmitOp(5, SpvOpCode.OpVariable, resultType, result, storageClass, access);
     
     public void EmitOpImageTexelPointer(id resultType, id result, id img, id coordinate, id sample) => EmitOp(6, SpvOpCode.OpImageTexelPointer, resultType, result, img, coordinate, sample);

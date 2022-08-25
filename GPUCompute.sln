@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUCompute", "GPUCompute\GP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUCompute.Tests", "GPUCompute.Tests\GPUCompute.Tests.csproj", "{651F4452-7782-4DAE-A69C-A984AB03C091}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUCompute.Examples", "GPUCompute.Examples\GPUCompute.Examples.csproj", "{FC62DBE5-8DA1-4A39-A1E6-2FB9F8319241}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUCompute.Gen", "GPUCompute.Gen\GPUCompute.Gen.csproj", "{E36BF577-FE52-45A7-B5E9-C2375B37D63B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{651F4452-7782-4DAE-A69C-A984AB03C091}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{651F4452-7782-4DAE-A69C-A984AB03C091}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{651F4452-7782-4DAE-A69C-A984AB03C091}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC62DBE5-8DA1-4A39-A1E6-2FB9F8319241}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC62DBE5-8DA1-4A39-A1E6-2FB9F8319241}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC62DBE5-8DA1-4A39-A1E6-2FB9F8319241}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC62DBE5-8DA1-4A39-A1E6-2FB9F8319241}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E36BF577-FE52-45A7-B5E9-C2375B37D63B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E36BF577-FE52-45A7-B5E9-C2375B37D63B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E36BF577-FE52-45A7-B5E9-C2375B37D63B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E36BF577-FE52-45A7-B5E9-C2375B37D63B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
