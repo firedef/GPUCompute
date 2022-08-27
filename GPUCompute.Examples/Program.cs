@@ -15,12 +15,16 @@ using Device device = new();
 using Environment env = new(device);
 const int c = 2_500_000;
 Buffer<float> input = new(device.allocator, c, BufferMode.write);
+Buffer<float> input2 = new(device.allocator, c, BufferMode.write);
 Buffer<float> output = new(device.allocator, c, BufferMode.read);
 input[0] = 69;
 input[10] = 42;
-using Job job = new(env, generator.code.GetByteCode(), 2);
-job.Execute(c / 256, input, output);
+input2[0] = 10;
+input2[10] = 10;
+using Job job = new(env, generator.code.GetByteCode(), 3);
+job.Execute(c / 256, input, input2, output);
 Console.WriteLine(input[0] + " " + input[10]);
+Console.WriteLine(input2[0] + " " + input2[10]);
 Console.WriteLine(output[0] + " " + output[10]);
 device.Wait();
 

@@ -27,5 +27,5 @@ public class SpvFunction {
     public void Instruction(ISpvInstruction v) => blocks[^1].instructions.Add(v);
     public void Instructions(IEnumerable<ISpvInstruction> v) => blocks[^1].instructions.AddRange(v);
     public void Parameter(Id type, Id id) => parameters.Add((type, id));
-    public Id Variable(Id type) => generator.AddVariable(id, type, SpvStorageClass.StorageClassFunction);
+    public SpvFuncVariable Variable(SpvType elementType) => generator.FuncVariable(this, SpvTypes.Pointer(elementType, SpvStorageClass.StorageClassFunction));
 }

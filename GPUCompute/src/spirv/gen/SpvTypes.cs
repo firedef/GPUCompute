@@ -90,5 +90,6 @@ public static class SpvTypes {
 
     public static Id GetId(this SpvType t, SpirVCodeGenerator gen) => gen.AddType(t);
 
-    public static Id Const<T>(this SpvType t, SpirVCodeGenerator gen, T v) where T : unmanaged => gen.AddConstant(t.GetId(gen), v);
+    public static Id Const<T>(this SpvType t, SpirVCodeGenerator gen, T v) where T : unmanaged => gen.Constant(t.GetId(gen), v);
+    public static Id Var(this SpvType t, SpirVCodeGenerator gen, SpvStorageClass storageClass) => gen.Variable(0, t, storageClass);
 }

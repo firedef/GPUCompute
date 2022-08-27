@@ -2,36 +2,41 @@ using GPUCompute.spirv.emit.enums;
 
 namespace GPUCompute.spirv.gen; 
 
-public readonly record struct Id(uint v) {
+public readonly record struct Id(uint v) : ISpvId {
     public readonly uint v = v;
+    public uint id => v;
     public static implicit operator uint(Id v) => v.v;
     public static implicit operator Id(uint v) => new(v);
 }
 
+public interface ISpvId {
+    public uint id { get; }
+} 
+
 public static class IdExtensions {
-    public static Id Decorate(this Id id, SpirVCodeGenerator code, SpvDecoration name, params uint[] args) {
-        code.decorations.Add(new(id, name, args));
+    public static T Decorate<T>(this T id, SpirVCodeGenerator code, SpvDecoration name, params uint[] args) where T : ISpvId {
+        code.decorations.Add(new(id.id, name, args));
         return id;
     }
     
-    public static Id MemberDecorate(this Id id, uint member, SpirVCodeGenerator code, SpvDecoration name, params uint[] args) {
-        code.memberDecorations.Add(new(id, member, name, args));
+    public static T MemberDecorate<T>(this T id, uint member, SpirVCodeGenerator code, SpvDecoration name, params uint[] args) where T : ISpvId {
+        code.memberDecorations.Add(new(id.id, member, name, args));
         return id;
     }
 
-    public static Id DecorateBuiltIn(this Id id, SpirVCodeGenerator code, SpvBuiltIn name) => id.Decorate(code, SpvDecoration.DecorationBuiltIn, (uint) name);
+    public static T DecorateBuiltIn<T>(this T id, SpirVCodeGenerator code, SpvBuiltIn name) where T : ISpvId => id.Decorate(code, SpvDecoration.DecorationBuiltIn, (uint) name);
     
-    public static Id Binding(this Id id, SpirVCodeGenerator code, int v) => id.Decorate(code, SpvDecoration.DecorationBinding, (uint) v);
-    public static Id DescriptorSet(this Id id, SpirVCodeGenerator code, int v) => id.Decorate(code, SpvDecoration.DecorationDescriptorSet, (uint) v);
+    public static T Binding<T>(this T id, SpirVCodeGenerator code, int v) where T : ISpvId => id.Decorate(code, SpvDecoration.DecorationBinding, (uint) v);
+    public static T DescriptorSet<T>(this T id, SpirVCodeGenerator code, int v) where T : ISpvId => id.Decorate(code, SpvDecoration.DecorationDescriptorSet, (uint) v);
 
-    public static Id Bind(this Id id, SpirVCodeGenerator code, int set, int binding) {
-        code.decorations.Add(new(id, SpvDecoration.DecorationDescriptorSet, (uint) set));
-        code.decorations.Add(new(id, SpvDecoration.DecorationBinding, (uint) binding));
+    public static T Bind<T>(this T id, SpirVCodeGenerator code, int set, int binding) where T : ISpvId {
+        code.decorations.Add(new(id.id, SpvDecoration.DecorationDescriptorSet, (uint) set));
+        code.decorations.Add(new(id.id, SpvDecoration.DecorationBinding, (uint) binding));
         return id;
     }
     
-    public static Id ReadOnly(this Id id, SpirVCodeGenerator code) => id.Decorate(code, SpvDecoration.DecorationNonWritable);
-    public static Id ReadOnly(this Id id, uint member, SpirVCodeGenerator code) => id.MemberDecorate(member, code, SpvDecoration.DecorationNonWritable);
-    public static Id WriteOnly(this Id id, SpirVCodeGenerator code) => id.Decorate(code, SpvDecoration.DecorationNonReadable);
-    public static Id WriteOnly(this Id id, uint member, SpirVCodeGenerator code) => id.MemberDecorate(member, code, SpvDecoration.DecorationNonReadable);
+    public static T ReadOnly<T>(this T id, SpirVCodeGenerator code) where T : ISpvId => id.Decorate(code, SpvDecoration.DecorationNonWritable);
+    public static T ReadOnly<T>(this T id, uint member, SpirVCodeGenerator code) where T : ISpvId => id.MemberDecorate(member, code, SpvDecoration.DecorationNonWritable);
+    public static T WriteOnly<T>(this T id, SpirVCodeGenerator code) where T : ISpvId => id.Decorate(code, SpvDecoration.DecorationNonReadable);
+    public static T WriteOnly<T>(this T id, uint member, SpirVCodeGenerator code) where T : ISpvId => id.MemberDecorate(member, code, SpvDecoration.DecorationNonReadable);
 }

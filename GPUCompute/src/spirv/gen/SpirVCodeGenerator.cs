@@ -25,28 +25,21 @@ public class SpirVCodeGenerator {
         _localSize = localSize;
 
         // globalInvocation Id
-        Id gl_GlobalInvocationId = AddVariable(0, Pointer(spvU32x3, SpvStorageClass.StorageClassInput).GetId(this), SpvStorageClass.StorageClassInput)
-            .DecorateBuiltIn(this, SpvBuiltIn.BuiltInGlobalInvocationId);
+        Id globalInvocationId = GlobalInvocationId();
         
         // workgroup
-        Id uint_1 = spvU32.Const(this, 1);
-        Id uint_256 = spvU32.Const(this, 256);
-        Id gl_WorkGroupSize = AddConstantComposite(spvU32x3.GetId(this), uint_256, uint_1, uint_1)
-            .DecorateBuiltIn(this, SpvBuiltIn.BuiltInWorkgroupSize);
+        Id gl_WorkGroupSize = WorkgroupSize(localSize);
 
         // in/out buffer
         SpvType runtimeArrFloat = RuntimeArray(spvF32)
             .Decorate(SpvDecoration.DecorationArrayStride, 4);
         
         // input buffer
-        SpvType inputBufferStruct = Struct(runtimeArrFloat).ReadOnly(0);
-        Id input_data = AddVariable(0, Pointer(inputBufferStruct, SpvStorageClass.StorageClassStorageBuffer).GetId(this), SpvStorageClass.StorageClassStorageBuffer)
-            .Bind(this, 0, 0);
+        Id input_data = StorageBuffer(Struct(runtimeArrFloat).ReadOnly(0)).Bind(this, 0, 0);
+        Id input2_data = StorageBuffer(Struct(runtimeArrFloat).ReadOnly(0)).Bind(this, 1, 0);
         
         // output buffer
-        SpvType outputBufferStruct = Struct(runtimeArrFloat);
-        Id output_data = AddVariable(0, Pointer(outputBufferStruct, SpvStorageClass.StorageClassStorageBuffer).GetId(this), SpvStorageClass.StorageClassStorageBuffer)
-            .Bind(this, 1, 0);
+        Id output_data = StorageBuffer(Struct(runtimeArrFloat)).Bind(this, 2, 0);
         
         // main function
         SpvFunction main = new(this) {
@@ -55,11 +48,14 @@ public class SpirVCodeGenerator {
         };
         _functions.Add("main", main);
 
-        Id gl_GlobalInvocationId_x = main.instructions.AccessAndLoad(spvU32, Pointer(spvU32, SpvStorageClass.StorageClassInput), gl_GlobalInvocationId, spvU32.Const(this, 0));
+        Id globalInvocationId_x = main.instructions.AccessAndLoad(spvU32, Pointer(spvU32, SpvStorageClass.StorageClassInput), globalInvocationId, spvU32.Const(this, 0));
         
-        Id input_v = main.instructions.AccessAndLoad(spvF32, Pointer(spvF32, SpvStorageClass.StorageClassUniform), input_data, spvI32.Const(this, 0), gl_GlobalInvocationId_x);
-        Id input_v_add_2 = main.instructions.FMul(spvF32, main.instructions.Sin(spvF32, input_v), spvF32.Const(this, 10f));
-        main.instructions.AccessAndStore(input_v_add_2, Pointer(spvF32, SpvStorageClass.StorageClassUniform), output_data, spvI32.Const(this, 0), gl_GlobalInvocationId_x);
+        Id input_v = main.instructions.AccessAndLoad(spvF32, Pointer(Struct(runtimeArrFloat), SpvStorageClass.StorageClassUniform), input_data, spvI32.Const(this, 0), globalInvocationId_x);
+        Id input2_v = main.instructions.AccessAndLoad(spvF32, Pointer(Struct(runtimeArrFloat), SpvStorageClass.StorageClassUniform), input2_data, spvI32.Const(this, 0), globalInvocationId_x);
+        Id input_v_add_2 = main.instructions.FMul(spvF32, main.instructions.FAdd(spvF32, input_v, input2_v), spvF32.Const(this, 10f));
+        SpvFuncVariable temp = main.Variable(spvF32);
+        temp.value = input_v_add_2;
+        main.instructions.AccessAndStore(temp.value, Pointer(spvF32, SpvStorageClass.StorageClassUniform), output_data, spvI32.Const(this, 0), globalInvocationId_x);
     }
 
     public Id GetNextId() => _maxId++;
@@ -97,7 +93,7 @@ public class SpirVCodeGenerator {
             constant.Emit(code);
 
         foreach (SpvVariable variable in _variables.Where(v => v.storageClass != SpvStorageClass.StorageClassFunction)) 
-            code.EmitOpVariable(variable.type, variable.id, variable.storageClass);
+            code.EmitOpVariable(variable.type.GetId(this), variable.id, variable.storageClass);
 
         foreach (KeyValuePair<string,SpvFunction> fun in _functions) 
             GenerateFunction(fun.Value);
@@ -114,7 +110,7 @@ public class SpirVCodeGenerator {
 
             if (i == 0) {
                 foreach (SpvVariable variable in _variables.Where(v => v.storageClass == SpvStorageClass.StorageClassFunction && v.owner == fun.id)) 
-                    code.EmitOpVariable(variable.type, variable.id, variable.storageClass);
+                    code.EmitOpVariable(variable.type.GetId(this), variable.id, variable.storageClass);
             }
 
             foreach (ISpvInstruction instruction in fun.blocks[i].instructions) 
@@ -138,25 +134,47 @@ public class SpirVCodeGenerator {
 
     public Id GetType(SpvType type) => _types[type];
     
-    public Id AddVariable(Id owner, Id type, SpvStorageClass storageClass) {
+    public SpvFuncVariable FuncVariable(SpvFunction function, SpvType type) {
         Id id = GetNextId();
-        _variables.Add(new() {id = id, owner = owner, type = type, storageClass = storageClass});
-        return id;
+        SpvFuncVariable v = new() { id = id, owner = function.id, type = type, storageClass = SpvStorageClass.StorageClassFunction, function = function};
+        _variables.Add(v);
+        return v;
+    }
+    
+    public SpvVariable Variable(Id owner, SpvType type, SpvStorageClass storageClass) {
+        Id id = GetNextId();
+        SpvVariable v = new() { id = id, owner = owner, type = type, storageClass = storageClass };
+        _variables.Add(v);
+        return v;
     }
 
-    public Id AddConstant<T>(Id type, T v) where T : unmanaged {
+    public Id StorageBuffer(SpvType type) => Variable(0, Pointer(type, SpvStorageClass.StorageClassStorageBuffer), SpvStorageClass.StorageClassStorageBuffer);
+    
+    public Id WorkgroupSize(int3 size) => 
+        ConstantComposite(spvU32x3.GetId(this), spvU32.Const(this, size.x), spvU32.Const(this, size.y), spvU32.Const(this, size.z))
+            .DecorateBuiltIn(this, SpvBuiltIn.BuiltInWorkgroupSize);
+    
+    public Id GlobalInvocationId() =>
+        Variable(0, Pointer(spvU32x3, SpvStorageClass.StorageClassInput), SpvStorageClass.StorageClassInput)
+            .DecorateBuiltIn(this, SpvBuiltIn.BuiltInGlobalInvocationId);
+
+    public Id Constant<T>(Id type, T v) where T : unmanaged {
         uint[] ints = SpirVEmitter.GetInts(v);
         
         foreach (ISpvConst c in _constants)
-            if (c is SpvConst c1 && c1.type == type && c1.value == ints)
+            if (c is SpvConst c1 && c1.type == type.v && c1.value.Length == ints.Length) {
+                for (int i = 0; i < ints.Length; i++) 
+                    if (ints[i] != c1.value[i]) goto NEXT;
                 return c1.id;
+            NEXT: ;
+            }
         
         Id id = GetNextId();
         _constants.Add(new SpvConst(type, id, ints));
         return id;
     }
     
-    public Id AddConstantComposite(Id type, params uint[] constituents) {
+    public Id ConstantComposite(Id type, params uint[] constituents) {
         foreach (ISpvConst c in _constants)
             if (c is SpvConstComposite c1 && c1.type == type && c1.constituents == constituents)
                 return c1.id;
