@@ -1,6 +1,7 @@
 using System.Text;
 using GPUCompute.spirv.emit.enums;
 using GPUCompute.spirv.emit.enums.extensions;
+using GPUCompute.spirv.gen;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,6 +34,103 @@ public static class InstructionGen {
             string args = string.Join(", ", decl.ParameterList.Parameters.Select(v => v.Identifier));
             sb.AppendLine($"public override void Emit(SpirVEmitter code) => code.Emit{opName}({args});");
             
+            sb.AppendLine("}");
+        }
+
+        return sb.ToString();
+    }
+    
+    public static string GenerateUnifiedFunctionInstructions() {
+        string path = @"/mnt/sdb/projects/cs/GPUCompute/GPUCompute/src/spirv/emit/SpirVEmitter.cs";
+        using FileStream fs = new(path, FileMode.Open);
+        
+        SourceText src = SourceText.From(fs);
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src, CSharpParseOptions.Default);
+
+        SyntaxNode root = syntaxTree.GetRoot();
+
+        StringBuilder sb = new();
+        foreach (MethodDeclarationSyntax decl in root.DescendantNodes().OfType<MethodDeclarationSyntax>().Where(v => v.Identifier.ToString().StartsWith("EmitOp"))) {
+            string opName = decl.Identifier.ToString().Replace("EmitOp", "");
+            if (opName is "Code" or "" or "erand") continue;
+
+            bool resultType = decl.ParameterList.Parameters.Any(v => v.Identifier.ToString() == "resultType");
+            bool result = decl.ParameterList.Parameters.Any(v => v.Identifier.ToString() == "result");
+
+            string returnType = result ? "Id" : "void";
+
+            string parameters = resultType ? "SpvType type, " : "";
+            string ctorParameters = "";
+            foreach (ParameterSyntax p in decl.ParameterList.Parameters) {
+                if (p.Identifier.ToString() is "resultType") {
+                    ctorParameters += "type.GetId(_code), ";
+                    continue;
+                }
+                if (p.Type!.ToString() is "id[]") {
+                    parameters += $"params Id[] {p.Identifier}, ";
+                    ctorParameters += $"{p.Identifier}.Select(v => v.v).ToArray(), ";
+                    continue;
+                }
+                ctorParameters += $"{p.Identifier}, ";
+                if (p.Identifier.ToString() is "result") continue;
+                if (p.Type!.ToString() is "id") parameters += $"Id {p.Identifier}, ";
+                else parameters += $"{p.Type} {p.Identifier}, ";
+            }
+
+            sb.AppendLine($"public {returnType} {opName}({parameters.Trim(',', ' ')}) {{");
+
+            if (result) sb.AppendLine("  Id result = _code.GetNextId();");
+            sb.AppendLine($"  _function.Instruction(new SpvOp.Unified.Op{opName}({ctorParameters.Trim(',', ' ')}));");
+            if (result) sb.AppendLine("  return result;");
+            sb.AppendLine("}");
+        }
+
+        return sb.ToString();
+    }
+    
+    public static string GenerateGlslStdFunctionInstructions() {
+        StringBuilder sb = new();
+        foreach (ExtInst instruction in _extInstructions) {
+            string opName = instruction.name.ToString();
+
+            string parameters = "SpvType type, ";
+            string ctorParameters = "";
+            foreach (string p in instruction.operands) {
+                parameters += $"Id {p}, ";
+                ctorParameters += $"{p}, ";
+            }
+
+            sb.AppendLine($"public Id {opName}({parameters.Trim(',', ' ')}) {{");
+
+            sb.AppendLine("  Id result = _code.GetNextId();");
+            sb.AppendLine($"  _function.Instruction(new SpvOp.GlslStd.Op{opName}(type.GetId(_code), result, _code.GetGlsl(), {ctorParameters.Trim(',', ' ')}));");
+            sb.AppendLine("  return result;");
+            sb.AppendLine("}");
+        }
+
+        return sb.ToString();
+    }
+    
+    public static string GenerateOpenClStdFunctionInstructions() {
+        const string path = @"data/OpenClStdInstructions.json";
+        ExtInstJson json = JsonConvert.DeserializeObject<ExtInstJson>(File.ReadAllText(path))!;
+        
+        StringBuilder sb = new();
+        foreach (ExtInstJson.Instruction instruction in json.instructions) {
+            string opName = FixString(char.ToUpper(instruction.opname[0]) + instruction.opname[1..]);
+
+            string parameters = "SpvType type, ";
+            string ctorParameters = "";
+            foreach (ExtInstJson.Instruction.Operand p in instruction.operands) {
+                parameters += $"Id {FixString(p.name)}, ";
+                ctorParameters += $"{FixString(p.name)}, ";
+            }
+
+            sb.AppendLine($"public Id {opName}({parameters.Trim(',', ' ')}) {{");
+
+            sb.AppendLine("  Id result = _code.GetNextId();");
+            sb.AppendLine($"  _function.Instruction(new SpvOp.OpenClStd.Op{opName}(type.GetId(_code), result, _code.GetOpenCl(), {ctorParameters.Trim(',', ' ')}));");
+            sb.AppendLine("  return result;");
             sb.AppendLine("}");
         }
 

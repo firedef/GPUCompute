@@ -346,8 +346,8 @@ public partial class SpvOp {
         }
 
         public readonly record struct OpExtInst
-            (id resultType, id result, id instructionSet, SpvExtInstGlslStd instruction, params id[] operands) : ISpvInstruction {
-            public readonly SpvExtInstGlslStd instruction = instruction;
+            (id resultType, id result, id instructionSet, uint instruction, params id[] operands) : ISpvInstruction {
+            public readonly uint instruction = instruction;
             public readonly id instructionSet = instructionSet;
             public readonly id[] operands = operands;
             public readonly id result = result;

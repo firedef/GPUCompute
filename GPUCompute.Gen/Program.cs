@@ -1,3 +1,3 @@
 ﻿using GPUCompute.Gen;
 
-Console.WriteLine(InstructionGen.GenerateOpenCl());
+Console.WriteLine(InstructionGen.GenerateOpenClStdFunctionInstructions());
