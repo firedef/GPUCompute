@@ -1,4 +1,5 @@
 using GPUCompute.spirv.emit.enums;
+using GPUCompute.spirv.gen.types;
 
 namespace GPUCompute.spirv.gen; 
 

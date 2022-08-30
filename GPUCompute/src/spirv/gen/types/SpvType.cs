@@ -1,9 +1,8 @@
-using GPUCompute.spirv.emit;
 using GPUCompute.spirv.emit.enums;
 
 // ReSharper disable BuiltInTypeReferenceStyle
 
-namespace GPUCompute.spirv.gen; 
+namespace GPUCompute.spirv.gen.types; 
 
 public readonly record struct SpvTypeDecorationData(SpvDecoration name, params uint[] args) {
     public readonly SpvDecoration name = name;

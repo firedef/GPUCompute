@@ -1,3 +1,5 @@
+using GPUCompute.spirv.gen.types;
+
 namespace GPUCompute.spirv.gen; 
 
 public interface ISpvAccess {

@@ -1,6 +1,6 @@
 using GPUCompute.spirv.emit.enums;
 
-namespace GPUCompute.spirv.gen; 
+namespace GPUCompute.spirv.gen.types; 
 
 public static class SpvTypes {
     public static SpvType spvU8 => Int(8, false);
@@ -92,4 +92,27 @@ public static class SpvTypes {
 
     public static Id Const<T>(this SpvType t, SpirVCodeGenerator gen, T v) where T : unmanaged => gen.Constant(t.GetId(gen), v);
     public static Id Var(this SpvType t, SpirVCodeGenerator gen, SpvStorageClass storageClass) => gen.Variable(0, t, storageClass);
+
+    public static SpvType Convert(Type t) {
+        if (t == typeof(void)) return spvVoid;
+        if (t == typeof(bool)) return spvBool;
+        
+        if (t == typeof(byte)) return spvU8;
+        if (t == typeof(sbyte)) return spvI8;
+        
+        if (t == typeof(ushort)) return spvU16;
+        if (t == typeof(short)) return spvI16;
+        
+        if (t == typeof(uint)) return spvU32;
+        if (t == typeof(int)) return spvI32;
+        
+        if (t == typeof(ulong)) return spvU64;
+        if (t == typeof(long)) return spvI64;
+        
+        if (t == typeof(Half)) return spvF16;
+        if (t == typeof(float)) return spvF32;
+        if (t == typeof(double)) return spvF64;
+
+        throw new NotSupportedException($"Type {t.Name} is not supported");
+    }
 }
